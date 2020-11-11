@@ -2,13 +2,19 @@ import React, { Component } from 'react';
 
 class Counter extends Component {
     state = {
-        count: 0
+        width: 5,
+        height: Math.random()*500
     };
 
     render(){
         return (
             <React.Fragment>
-                <span>Hello World</span>
+                <div>
+                <div style={{display: "inline-block", width: this.state.width, height: this.state.height, backgroundColor: 'skyblue'}}>
+                </div>
+                Hell orld
+                </div>
+                
             </React.Fragment>
             );
     }

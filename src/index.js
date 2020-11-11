@@ -3,11 +3,11 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import Counter from './components/counterTempComponent';
+import Sorter from './components/sorterTempComponent';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Counter />
+    <Sorter />
   </React.StrictMode>,
   document.getElementById('root')
 );

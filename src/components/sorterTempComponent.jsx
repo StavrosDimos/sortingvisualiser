@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import Button from 'react-bootstrap/Button'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Navbar } from 'react-bootstrap';
+import { Container, Navbar } from 'react-bootstrap';
 import {ButtonGroup} from 'react-bootstrap';
 
 class Sorter extends Component {
     state = {
         screenHeight: null,
         screenWidth: null,
-        width: 10,
+        width: 5,
         values: [],
         valueStates: [],
         bubbleIsActive: null,
@@ -17,6 +17,7 @@ class Sorter extends Component {
         sortInterval: null,
         bubbleInner: null,
         bubbleOuter: null,
+        speed: 9
     };
 
     render(){
@@ -34,7 +35,7 @@ class Sorter extends Component {
                         Sort
                     </Button>
                 </Navbar>
-                {this.renderColumns()}
+                {this.renderColumns()} 
             </React.Fragment>
             );
     }
@@ -62,6 +63,7 @@ class Sorter extends Component {
     }
 
     genNewArray(){
+        clearInterval(this.state.sortInterval)
         var screenWidth = this.state.screenWidth
         var values = new Array(parseInt(screenWidth/this.state.width))
         var states = new Array(parseInt(screenWidth/this.state.width))
@@ -77,7 +79,7 @@ class Sorter extends Component {
             var columns = []
             var vals = this.state.values
             var states = this.state.valueStates
-            for (var i=0; i<this.state.screenWidth; i++){
+            for (var i=0; i<(this.state.screenWidth-17)/this.state.width; i++){
                 if (states[i]==1){
                     columns.push(<div style={{display: "inline-block", width: this.state.width, height: vals[i], backgroundColor: 'skyblue'}}></div>)
                 }
@@ -140,30 +142,34 @@ class Sorter extends Component {
     bubbleStep(){
         var inner = this.state.bubbleInner
         var outer = this.state.bubbleOuter
-        
-        if (inner>this.state.values.length - 1-outer){
-            inner = 0
-            outer = outer+1
-        }
-        if (outer >this.state.values.length){
-            clearInterval(this.state.sortInterval)
-        }
+        var speed = this.state.speed
         var states = this.state.valueStates
         var values = this.state.values
-        if (states[inner]===1){
-            states[inner]=2
-            states[inner+1]=2
-        } else {
-            states[inner]=1
-            states[inner+1]=1
+
+        for (var i = 0; i < speed; i++){
+            if (inner>this.state.values.length - 1-outer){
+                inner = 0
+                outer = outer+1
+            }
+            if (outer >this.state.values.length){
+                clearInterval(this.state.sortInterval)
+            }
+            
+            if (states[inner]===1){
+                states[inner]=2
+                states[inner+1]=2
+            } else {
+                states[inner]=1
+                states[inner+1]=1
             if (values[inner]<values[inner+1]){
                 var temp = values[inner]
                 values[inner]=values[inner+1]
                 values[inner+1]=temp
             }
             inner = inner+1
+            }
+            
         }
-        
         this.setState({valueStates: states, bubbleInner: inner, bubbleOuter: outer})
     }
 }

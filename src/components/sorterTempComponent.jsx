@@ -9,6 +9,7 @@ class Sorter extends Component {
         screenHeight: null,
         screenWidth: null,
         width: 5,
+        height: 849,
         values: [],
         valueStates: [],
         bubbleIsActive: null,
@@ -36,6 +37,9 @@ class Sorter extends Component {
                     </Button>
                 </Navbar>
                 {this.renderColumns()} 
+                <Navbar bg="dark" variant="dark" className="mt-0">
+
+                </Navbar>
             </React.Fragment>
             );
     }
@@ -59,16 +63,22 @@ class Sorter extends Component {
     }
 
     updateWindowDimensions(){
-        this.setState({screenWidth: window.innerWidth, screenHeight: window.innerHeight})
+        var height = window.innerHeight
+        var columnHeight = height - 80
+        this.setState({screenWidth: window.innerWidth, screenHeight: height, height: columnHeight})
     }
 
     genNewArray(){
         clearInterval(this.state.sortInterval)
         var screenWidth = this.state.screenWidth
-        var values = new Array(parseInt(screenWidth/this.state.width))
-        var states = new Array(parseInt(screenWidth/this.state.width))
+        screenWidth = screenWidth-17
+        if (screenWidth <= 0){
+            screenWidth = 1
+        }
+        var values = new Array(Math.floor(screenWidth/this.state.width))
+        var states = new Array(Math.floor(screenWidth/this.state.width))
         for (var i=0; i<values.length; i++){
-            values[i]=Math.random()*800
+            values[i]=Math.random()*(this.state.height-5)
             states[i]=1
         }
         this.setState({values: values, valueStates: states})
@@ -79,14 +89,20 @@ class Sorter extends Component {
             var columns = []
             var vals = this.state.values
             var states = this.state.valueStates
+            var height = this.state.height
             for (var i=0; i<(this.state.screenWidth-17)/this.state.width; i++){
+                columns.push(<div style={{display: "inline-block", width: 1, height: height}}></div>)
                 if (states[i]==1){
-                    columns.push(<div style={{display: "inline-block", width: this.state.width, height: vals[i], backgroundColor: 'skyblue'}}></div>)
+                    columns.push(<div style={{display: "inline-block", width: (this.state.width-1), height: vals[i], backgroundColor: 'skyblue'}}></div>)
                 }
                 if (states[i]==2){
-                    columns.push(<div style={{display: "inline-block", width: this.state.width, height: vals[i], backgroundColor: 'chocolate'}}></div>)
+                    columns.push(<div style={{display: "inline-block", width: (this.state.width-1), height: vals[i], backgroundColor: 'chocolate'}}></div>)
                 }
+                if (states[i]==3){
+                    columns.push(<div style={{display: "inline-block", width: (this.state.width-1), height: vals[i], backgroundColor: 'forestgreen'}}></div>)
                 }
+            }
+
             return columns
         }
     }
@@ -134,8 +150,16 @@ class Sorter extends Component {
 
     sortOnClick(){
         clearInterval(this.state.sortInterval)
-        var sortInterval = setInterval(this.bubbleStep, 1)
+        if (this.state.bubbleIsActive){
+            var sortInterval = setInterval(this.bubbleStep, 1)
         this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+        }
+        if (this.state.mergeIsActive){   
+        this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+        }
+        if (this.state.quickIsActive){
+        this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+        }
     }
     
     //make sure to correct bubblestep when restarting genarray
@@ -148,6 +172,8 @@ class Sorter extends Component {
 
         for (var i = 0; i < speed; i++){
             if (inner>this.state.values.length - 1-outer){
+                states[inner-1]=3
+                states[inner] = 3
                 inner = 0
                 outer = outer+1
             }
@@ -161,7 +187,7 @@ class Sorter extends Component {
             } else {
                 states[inner]=1
                 states[inner+1]=1
-            if (values[inner]<values[inner+1]){
+            if (values[inner]>values[inner+1]){
                 var temp = values[inner]
                 values[inner]=values[inner+1]
                 values[inner+1]=temp

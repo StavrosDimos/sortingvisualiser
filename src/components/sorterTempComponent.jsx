@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Button from 'react-bootstrap/Button'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Container, Navbar } from 'react-bootstrap';
+import { Navbar } from 'react-bootstrap';
 import {ButtonGroup} from 'react-bootstrap';
 
 class Sorter extends Component {
@@ -18,7 +18,11 @@ class Sorter extends Component {
         sortInterval: null,
         bubbleInner: null,
         bubbleOuter: null,
-        speed: 9
+        mergeArrays: [],
+        workingMergeArrays: [],
+        mergeOuter: null,
+        mergeInner: null,
+        speed: 15
     };
 
     render(){
@@ -51,9 +55,11 @@ class Sorter extends Component {
         this.bubbleSortOnClick=this.bubbleSortOnClick.bind(this)
         this.updateWindowDimensions=this.updateWindowDimensions.bind(this)
         this.bubbleStep=this.bubbleStep.bind(this)
+        this.mergeStep=this.mergeStep.bind(this)
         this.sortOnClick=this.sortOnClick.bind(this)
         this.setState({mergeIsActive: false, bubbleIsActive: true, quickIsActive: false})
         this.updateWindowDimensions()
+        setTimeout(this.genNewArray, 10)
         this.genNewArray()
         window.addEventListener('resize', this.updateWindowDimensions)
     }
@@ -92,13 +98,13 @@ class Sorter extends Component {
             var height = this.state.height
             for (var i=0; i<(this.state.screenWidth-17)/this.state.width; i++){
                 columns.push(<div style={{display: "inline-block", width: 1, height: height}}></div>)
-                if (states[i]==1){
+                if (states[i]===1){
                     columns.push(<div style={{display: "inline-block", width: (this.state.width-1), height: vals[i], backgroundColor: 'skyblue'}}></div>)
                 }
-                if (states[i]==2){
+                if (states[i]===2){
                     columns.push(<div style={{display: "inline-block", width: (this.state.width-1), height: vals[i], backgroundColor: 'chocolate'}}></div>)
                 }
-                if (states[i]==3){
+                if (states[i]===3){
                     columns.push(<div style={{display: "inline-block", width: (this.state.width-1), height: vals[i], backgroundColor: 'forestgreen'}}></div>)
                 }
             }
@@ -138,31 +144,56 @@ class Sorter extends Component {
 
     bubbleSortOnClick(){
         this.setState({mergeIsActive: false, bubbleIsActive: true, quickIsActive: false})
+        clearInterval(this.state.sortInterval)
+        var states = this.state.valueStates
+            for(var i = 0; i < states.length; i++){
+                states[i]=1
+            }
+        this.setState({valueStates: states})
     }
 
     mergeSortOnClick(){
         this.setState({mergeIsActive: true, bubbleIsActive: false, quickIsActive: false})
+        clearInterval(this.state.sortInterval)
+        var states = this.state.valueStates
+            for(var i = 0; i < states.length; i++){
+                states[i]=1
+            }
+        this.setState({valueStates: states})
     }
 
     quickSortOnClick(){
         this.setState({mergeIsActive: false, bubbleIsActive: false, quickIsActive: true})
+        clearInterval(this.state.sortInterval)
+        var states = this.state.valueStates
+            for(var i = 0; i < states.length; i++){
+                states[i]=1
+            }
+        this.setState({valueStates: states})
     }
 
     sortOnClick(){
         clearInterval(this.state.sortInterval)
         if (this.state.bubbleIsActive){
             var sortInterval = setInterval(this.bubbleStep, 1)
-        this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+            this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
         }
-        if (this.state.mergeIsActive){   
-        this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+        if (this.state.mergeIsActive){
+            var sortInterval = setInterval(this.mergeStep, 500)
+            var values = this.state.values
+            var mergeArrays = []
+            for (var i = 0; i < values.length; i++){
+                var tempArray = []
+                tempArray.push(values[i])
+                mergeArrays.push(tempArray)
+            }
+            this.setState({sortInterval: sortInterval, mergeArrays: mergeArrays, workingMergeArrays: mergeArrays, mergeOuter: 0, mergeInner: 0})
         }
         if (this.state.quickIsActive){
-        this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+            this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
         }
     }
     
-    //make sure to correct bubblestep when restarting genarray
     bubbleStep(){
         var inner = this.state.bubbleInner
         var outer = this.state.bubbleOuter
@@ -197,6 +228,38 @@ class Sorter extends Component {
             
         }
         this.setState({valueStates: states, bubbleInner: inner, bubbleOuter: outer})
+    }
+
+    mergeStep(){
+        var arrays = this.state.mergeArrays
+        var newArrays = []
+        var newValues = []
+        for(var i = 0; i < arrays.length;i=i+2){
+            var tempArray = []
+            for(var g = 0; g < arrays[i].length;g++){
+                tempArray.push(arrays[i][g])
+            }
+            if(i+1 < arrays.length){
+                for(g = 0; g < arrays[i+1].length;g++){
+                    tempArray.push(arrays[i+1][g])
+                }
+            }
+            
+            tempArray.sort(function(a, b) {return a - b;})
+            for(g=0; g < tempArray.length; g++){
+                newValues.push(tempArray[g])
+            }
+            newArrays.push(tempArray)
+        }
+        this.setState({mergeArrays: newArrays, values: newValues})
+        if(newArrays.length===1){
+            clearInterval(this.state.sortInterval)
+            var states = this.state.valueStates
+            for(i = 0; i < states.length; i++){
+                states[i]=3
+            }
+            this.setState({valueStates: states})
+        }
     }
 }
 

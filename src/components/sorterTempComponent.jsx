@@ -19,9 +19,7 @@ class Sorter extends Component {
         bubbleInner: null,
         bubbleOuter: null,
         mergeArrays: [],
-        workingMergeArrays: [],
-        mergeOuter: null,
-        mergeInner: null,
+        quickArrays: [],
         speed: 15
     };
 
@@ -57,6 +55,7 @@ class Sorter extends Component {
         this.bubbleStep=this.bubbleStep.bind(this)
         this.mergeStep=this.mergeStep.bind(this)
         this.sortOnClick=this.sortOnClick.bind(this)
+        this.quickStep=this.quickStep.bind(this)
         this.setState({mergeIsActive: false, bubbleIsActive: true, quickIsActive: false})
         this.updateWindowDimensions()
         setTimeout(this.genNewArray, 10)
@@ -175,22 +174,26 @@ class Sorter extends Component {
     sortOnClick(){
         clearInterval(this.state.sortInterval)
         if (this.state.bubbleIsActive){
-            var sortInterval = setInterval(this.bubbleStep, 1)
-            this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+            var BsortInterval = setInterval(this.bubbleStep, 1)
+            this.setState({sortInterval: BsortInterval, bubbleInner: 0, bubbleOuter: 0})
         }
         if (this.state.mergeIsActive){
-            var sortInterval = setInterval(this.mergeStep, 500)
+            var MsortInterval = setInterval(this.mergeStep, 500)
             var values = this.state.values
             var mergeArrays = []
             for (var i = 0; i < values.length; i++){
-                var tempArray = []
-                tempArray.push(values[i])
-                mergeArrays.push(tempArray)
+                var MtempArray = []
+                MtempArray.push(values[i])
+                mergeArrays.push(MtempArray)
             }
-            this.setState({sortInterval: sortInterval, mergeArrays: mergeArrays, workingMergeArrays: mergeArrays, mergeOuter: 0, mergeInner: 0})
+            this.setState({sortInterval: MsortInterval, mergeArrays: mergeArrays})
         }
         if (this.state.quickIsActive){
-            this.setState({sortInterval: sortInterval, bubbleInner: 0, bubbleOuter: 0})
+            var QsortInterval = setInterval(this.quickStep, 100)
+            var Qvalues = this.state.values
+            var QtempArray = []
+            QtempArray.push(Qvalues)
+            this.setState({sortInterval: QsortInterval, quickArrays: QtempArray})
         }
     }
     
@@ -261,6 +264,79 @@ class Sorter extends Component {
             this.setState({valueStates: states})
         }
     }
+
+    quickStep(){
+        var quickArrays = this.state.quickArrays
+        var values = this.state.values
+        if (quickArrays.length===values.length){
+            console.log("done");
+            var states = this.state.valueStates
+            for(var i = 0; i < states.length; i++){
+                states[i] = 3
+            }
+            this.setState({valueStates: states})
+            clearInterval(this.state.sortInterval)
+        } else {
+            var newQuickArrays = []
+            var doneStep = false
+            var lockedIndex = 0
+            var completeIndexes = []
+            for(var i = 0; i < quickArrays.length; i++){
+                if(doneStep){
+                    newQuickArrays.push(quickArrays[i])
+                } else {
+                    if(quickArrays[i].length>1){
+                        doneStep = true
+                        var pivot = Math.floor(quickArrays[i].length/2)
+                        
+                        var split = this.splitOnPivot(quickArrays[i], pivot)
+                        if(split[0].length>0){
+                            newQuickArrays.push(split[0])  
+                            lockedIndex = lockedIndex + split[0].length
+                        }
+                        newQuickArrays.push([quickArrays[i][pivot]])
+                        if(split[1].length>0){
+                            newQuickArrays.push(split[1])  
+                        }
+                    } else {
+                        completeIndexes.push(i)
+                        lockedIndex = lockedIndex + quickArrays[i].length
+                        newQuickArrays.push(quickArrays[i])
+                    }
+                }
+            }
+            var newValues = []
+            for (i = 0; i < newQuickArrays.length; i++){
+                for (var g = 0; g < newQuickArrays[i].length; g++){
+                    newValues.push(newQuickArrays[i][g])
+                }
+            }
+            var states = this.state.valueStates
+            for(i = 0; i <= completeIndexes.length; i++){
+                states[completeIndexes[i]] = 3
+            }
+            states[lockedIndex]=3
+            this.setState({quickArrays: newQuickArrays, values: newValues, valueStates: states})
+        }
+    }
+
+    splitOnPivot(values, pivotIndex){
+        var lowerHalf=[]
+        var upperHalf=[]
+        var pivotVal=values[pivotIndex]
+        for (var i = 0; i < values.length; i++){
+            if (i!==pivotIndex){
+               if (values[i]<=pivotVal){
+                    lowerHalf.push(values[i])
+                } else {
+                upperHalf.push(values[i])
+                }
+            }
+            
+        }
+        return [lowerHalf, upperHalf]
+    }
+
 }
 
 export default Sorter;
